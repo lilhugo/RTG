@@ -30,7 +30,7 @@ POSITION_LIMIT = 100
 TICK_SIZE_IN_CENTS = 100
 MIN_BID_NEAREST_TICK = (MINIMUM_BID + TICK_SIZE_IN_CENTS) // TICK_SIZE_IN_CENTS * TICK_SIZE_IN_CENTS
 MAX_ASK_NEAREST_TICK = MAXIMUM_ASK // TICK_SIZE_IN_CENTS * TICK_SIZE_IN_CENTS
-
+MID_PRICES = []
 
 class AutoTrader(BaseAutoTrader):
     """Example Auto-trader.
@@ -81,9 +81,15 @@ class AutoTrader(BaseAutoTrader):
         """
         self.logger.info("received order book for instrument %d with sequence number %d", instrument,
                          sequence_number)
+        
+
+        self.logger.info(f"ask prices: {ask_prices}")
+        
         if instrument == Instrument.FUTURE:
-            mid_price = (bid_prices[0] + ask_prices[0])/2
+
+            mid_price = (bid_prices[0] + ask_prices[0])//2
             current_position = self.position 
+            
             price_adjustment = - (self.position // LOT_SIZE) * TICK_SIZE_IN_CENTS
             new_bid_price = bid_prices[0] + price_adjustment if bid_prices[0] != 0 else 0
             new_ask_price = ask_prices[0] + price_adjustment if ask_prices[0] != 0 else 0
@@ -116,6 +122,7 @@ class AutoTrader(BaseAutoTrader):
         """
         self.logger.info("received order filled for order %d with price %d and volume %d", client_order_id,
                          price, volume)
+        
         if client_order_id in self.bids:
             self.position += volume
             self.send_hedge_order(next(self.order_ids), Side.ASK, MIN_BID_NEAREST_TICK, volume)
