@@ -260,3 +260,35 @@
 2023-03-09 11:40:00,703 [INFO   ] [CONTROLLER] market open
 2023-03-09 11:40:14,244 [INFO   ] [APP] SIGTERM signal received - shutting down...
 2023-03-09 11:40:14,247 [INFO   ] [APP] closing event loop
+2023-03-09 19:16:48,398 [INFO   ] [APP] exchange started with arguments={rtg.py, run, autotrader.py}
+2023-03-09 19:16:48,399 [INFO   ] [APP] configuration={"Engine":{"MarketDataFile":"data/market_data1.csv","MarketEventInterval":0.05,"MarketOpenDelay":5.0,"MatchEventsFile":"match_events.csv","ScoreBoardFile":"score_board.csv","Speed":1.0,"TickInterval":0.25},"Execution":{"Host":"127.0.0.1","Port":12345},"Fees":{"Maker":-0.0001,"Taker":0.0002},"Hud":{"Host":"127.0.0.1","Port":12347},"Information":{"Type":"mmap","Name":"info.dat"},"Instrument":{"EtfClamp":0.002,"TickSize":1.0},"Limits":{"ActiveOrderCountLimit":10,"ActiveVolumeLimit":200,"MessageFrequencyInterval":1.0,"MessageFrequencyLimit":50,"PositionLimit":100},"Traders":{"TraderOne":"secret","TraderTwo":"secret","TraderThree":"secret"}}
+2023-03-09 19:16:48,401 [INFO   ] [CONTROLLER] starting the match
+2023-03-09 19:16:48,402 [INFO   ] [EXECUTION] starting execution server: host=127.0.0.1 port=12345
+2023-03-09 19:16:48,403 [INFO   ] [INFORMATION] starting information publisher: type=mmap name=info.dat
+2023-03-09 19:16:48,404 [INFO   ] [HEADS_UP] starting heads-up display server: host=127.0.0.1 port=12347
+2023-03-09 19:16:48,405 [INFO   ] [INFORMATION] information channel established
+2023-03-09 19:16:48,459 [INFO   ] [CONNECTION] fd=1144 connection established: peer=127.0.0.1:51708
+2023-03-09 19:16:48,460 [INFO   ] [EXECUTION] fd=1144 'TraderOne' is ready!
+2023-03-09 19:16:50,049 [INFO   ] [CONNECTION] fd=1160 connection established: peer=127.0.0.1:51709
+2023-03-09 19:16:53,428 [INFO   ] [CONTROLLER] market open
+2023-03-09 19:18:28,201 [INFO   ] [APP] exchange started with arguments={rtg.py, run, autotrader3.py}
+2023-03-09 19:18:28,201 [INFO   ] [APP] configuration={"Engine":{"MarketDataFile":"data/market_data1.csv","MarketEventInterval":0.05,"MarketOpenDelay":5.0,"MatchEventsFile":"match_events.csv","ScoreBoardFile":"score_board.csv","Speed":1.0,"TickInterval":0.25},"Execution":{"Host":"127.0.0.1","Port":12345},"Fees":{"Maker":-0.0001,"Taker":0.0002},"Hud":{"Host":"127.0.0.1","Port":12347},"Information":{"Type":"mmap","Name":"info.dat"},"Instrument":{"EtfClamp":0.002,"TickSize":1.0},"Limits":{"ActiveOrderCountLimit":10,"ActiveVolumeLimit":200,"MessageFrequencyInterval":1.0,"MessageFrequencyLimit":50,"PositionLimit":100},"Traders":{"TraderOne":"secret","TraderTwo":"secret","TraderThree":"secret"}}
+2023-03-09 19:18:28,203 [INFO   ] [CONTROLLER] starting the match
+2023-03-09 19:18:28,203 [INFO   ] [EXECUTION] starting execution server: host=127.0.0.1 port=12345
+2023-03-09 19:18:28,204 [INFO   ] [INFORMATION] starting information publisher: type=mmap name=info.dat
+2023-03-09 19:18:28,206 [INFO   ] [HEADS_UP] starting heads-up display server: host=127.0.0.1 port=12347
+2023-03-09 19:18:28,207 [INFO   ] [INFORMATION] information channel established
+2023-03-09 19:18:28,228 [INFO   ] [CONNECTION] fd=1544 connection established: peer=127.0.0.1:51758
+2023-03-09 19:18:28,228 [INFO   ] [EXECUTION] fd=1544 'TraderThree' is ready!
+2023-03-09 19:18:29,139 [INFO   ] [CONNECTION] fd=1556 connection established: peer=127.0.0.1:51759
+2023-03-09 19:18:33,225 [INFO   ] [CONTROLLER] market open
+2023-03-09 19:18:34,034 [INFO   ] [COMPETITOR] 'TraderThree' sent error message: time=0.812000 client_order_id=2 message='price is not a multiple of tick size'
+2023-03-09 19:18:36,654 [INFO   ] [COMPETITOR] 'TraderThree' sent error message: time=3.422000 client_order_id=7 message='price is not a multiple of tick size'
+2023-03-09 19:18:38,881 [INFO   ] [COMPETITOR] 'TraderThree' sent error message: time=5.656000 client_order_id=13 message='price is not a multiple of tick size'
+2023-03-09 19:18:38,996 [INFO   ] [COMPETITOR] 'TraderThree' sent error message: time=5.765000 client_order_id=15 message='price is not a multiple of tick size'
+2023-03-09 19:18:39,198 [INFO   ] [COMPETITOR] 'TraderThree' sent error message: time=5.969000 client_order_id=17 message='price is not a multiple of tick size'
+2023-03-09 19:18:39,443 [INFO   ] [COMPETITOR] 'TraderThree' sent error message: time=6.219000 client_order_id=19 message='price is not a multiple of tick size'
+2023-03-09 19:18:39,690 [INFO   ] [COMPETITOR] 'TraderThree' sent error message: time=6.469000 client_order_id=21 message='price is not a multiple of tick size'
+2023-03-09 19:18:39,970 [INFO   ] [COMPETITOR] 'TraderThree' sent error message: time=6.750000 client_order_id=23 message='price is not a multiple of tick size'
+2023-03-09 19:18:40,218 [INFO   ] [COMPETITOR] 'TraderThree' sent error message: time=6.984000 client_order_id=25 message='price is not a multiple of tick size'
+2023-03-09 19:18:40,540 [INFO   ] [COMPETITOR] 'TraderThree' sent error message: time=7.312000 client_order_id=27 message='price is not a multiple of tick size'
