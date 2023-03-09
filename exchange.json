@@ -36,6 +36,7 @@
     "PositionLimit": 100
   },
   "Traders": {
+    "TraderHugo": "secret",
     "TraderOne": "secret",
     "TraderTwo": "secret",
     "TraderThree": "secret"
