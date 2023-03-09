@@ -2,3 +2,7 @@ __pycache__
 *.log
 *.csv
 *.dat
+autotrader.log
+exchange.log
+info.dat
+match_events.csv
