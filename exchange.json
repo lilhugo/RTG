@@ -5,7 +5,7 @@
     "MarketOpenDelay": 5.0,
     "MatchEventsFile": "match_events.csv",
     "ScoreBoardFile": "score_board.csv",
-    "Speed": 1.0,
+    "Speed": 5.0,
     "TickInterval": 0.25
   },
   "Execution": {
@@ -37,6 +37,7 @@
   },
   "Traders": {
     "TraderHugo": "secret",
+    "TraderHugo2": "secret",
     "TraderOne": "secret",
     "TraderTwo": "secret",
     "TraderThree": "secret"

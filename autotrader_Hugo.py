@@ -17,6 +17,7 @@
 #     <https://www.gnu.org/licenses/>.
 import asyncio
 import itertools
+import numpy as np
 
 from typing import List
 
@@ -28,6 +29,11 @@ POSITION_LIMIT = 100
 TICK_SIZE_IN_CENTS = 100
 MIN_BID_NEAREST_TICK = (MINIMUM_BID + TICK_SIZE_IN_CENTS) // TICK_SIZE_IN_CENTS * TICK_SIZE_IN_CENTS
 MAX_ASK_NEAREST_TICK = MAXIMUM_ASK // TICK_SIZE_IN_CENTS * TICK_SIZE_IN_CENTS
+MID_PRICE_FUTURE = []
+RETURNS_FUTURE = []
+MID_PRICE_ETF = []
+END_TIME = 3600
+TICK_INTERVAL = 0.25
 
 
 class AutoTrader(BaseAutoTrader):
@@ -79,10 +85,42 @@ class AutoTrader(BaseAutoTrader):
         """
         self.logger.info("received order book for instrument %d with sequence number %d", instrument,
                          sequence_number)
+    
         if instrument == Instrument.FUTURE:
-            price_adjustment = - (self.position // LOT_SIZE) * TICK_SIZE_IN_CENTS
-            new_bid_price = bid_prices[0] + price_adjustment if bid_prices[0] != 0 else 0
-            new_ask_price = ask_prices[0] + price_adjustment if ask_prices[0] != 0 else 0
+            mid_price_future = (ask_prices[0] + bid_prices[0]) // 2
+            MID_PRICE_FUTURE.append(mid_price_future)
+            if len(MID_PRICE_FUTURE) > 1:
+                returns_future = (MID_PRICE_FUTURE[-1] - MID_PRICE_FUTURE[-2]) / MID_PRICE_FUTURE[-2]
+                RETURNS_FUTURE.append(returns_future)
+            self.logger.info(f"mid price for the Future: {mid_price_future}")
+            self.logger.info(f"mid price vector length for the Future: {len(MID_PRICE_FUTURE)}")
+            
+            if len(RETURNS_FUTURE) > 20:
+                vol_future = np.std(np.array(RETURNS_FUTURE)) * np.sqrt(END_TIME * 4)
+                self.logger.info(f"volatility for the Future: {vol_future}")
+                reservation_price = mid_price_future - self.position * 0.01 * (vol_future ** 2) * (END_TIME - TICK_INTERVAL * sequence_number)
+                self.logger.info(f"reservation price for the Future: {reservation_price}")
+                optimal_spread = 0.01 * (vol_future ** 2) * (END_TIME - TICK_INTERVAL * sequence_number) + 2 * np.log(1 + 0.01 / 0.3) / 0.01
+        
+        """
+        if instrument == Instrument.ETF:
+            mid_price_etf = (ask_prices[0] + bid_prices[0]) // 2
+            MID_PRICE_ETF.append(mid_price_etf)
+            self.logger.info(f"ask prices and ask volumes for the ETF: {ask_prices}, {ask_volumes}")
+            self.logger.info(f"bid prices and bid volumes for the ETF: {bid_prices}, {bid_volumes}")
+            self.logger.info(f"mid price for the ETF: {mid_price_etf}")
+            self.logger.info(f"mid price vector length for the ETF: {len(MID_PRICE_ETF)}")
+            if len(MID_PRICE_ETF) > 100:
+                vol_etf = np.std(np.array(MID_PRICE_ETF))
+                self.logger.info(f"volatility for the ETF: {vol_etf}")
+        """
+
+        if instrument == Instrument.FUTURE and len(RETURNS_FUTURE) > 20:
+            price_adjustment = - (self.position // LOT_SIZE) * TICK_SIZE_IN_CENTS 
+            new_bid_price = int((reservation_price - optimal_spread * TICK_SIZE_IN_CENTS  / 2) // TICK_SIZE_IN_CENTS * TICK_SIZE_IN_CENTS)
+            new_ask_price = int((reservation_price + optimal_spread * TICK_SIZE_IN_CENTS / 2) // TICK_SIZE_IN_CENTS * TICK_SIZE_IN_CENTS)
+            self.logger.info(f"new bid price: {new_bid_price}")
+            self.logger.info(f"new ask price: {new_ask_price}")
 
             if self.bid_id != 0 and new_bid_price not in (self.bid_price, 0):
                 self.send_cancel_order(self.bid_id)
@@ -94,13 +132,13 @@ class AutoTrader(BaseAutoTrader):
             if self.bid_id == 0 and new_bid_price != 0 and self.position < POSITION_LIMIT:
                 self.bid_id = next(self.order_ids)
                 self.bid_price = new_bid_price
-                self.send_insert_order(self.bid_id, Side.BUY, new_bid_price, LOT_SIZE, Lifespan.GOOD_FOR_DAY)
+                self.send_insert_order(self.bid_id, Side.BUY, new_bid_price, np.minimum(LOT_SIZE,POSITION_LIMIT - self.position), Lifespan.FILL_AND_KILL)
                 self.bids.add(self.bid_id)
 
             if self.ask_id == 0 and new_ask_price != 0 and self.position > -POSITION_LIMIT:
                 self.ask_id = next(self.order_ids)
                 self.ask_price = new_ask_price
-                self.send_insert_order(self.ask_id, Side.SELL, new_ask_price, LOT_SIZE, Lifespan.GOOD_FOR_DAY)
+                self.send_insert_order(self.ask_id, Side.SELL, new_ask_price, np.minimum(LOT_SIZE,self.position + POSITION_LIMIT), Lifespan.FILL_AND_KILL)
                 self.asks.add(self.ask_id)
 
     def on_order_filled_message(self, client_order_id: int, price: int, volume: int) -> None:
@@ -130,8 +168,7 @@ class AutoTrader(BaseAutoTrader):
 
         If an order is cancelled its remaining volume will be zero.
         """
-        self.logger.info("received order status for order %d with fill volume %d remaining %d and fees %d",
-                         client_order_id, fill_volume, remaining_volume, fees)
+        self.logger.info("received order status for order %d with fill volume %d remaining %d and fees %d",client_order_id, fill_volume, remaining_volume, fees)
         if remaining_volume == 0:
             if client_order_id == self.bid_id:
                 self.bid_id = 0
