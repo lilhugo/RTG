@@ -98,9 +98,9 @@ class AutoTrader(BaseAutoTrader):
             if len(RETURNS_FUTURE) > 20:
                 vol_future = np.std(np.array(RETURNS_FUTURE)) * np.sqrt(END_TIME * 4)
                 self.logger.info(f"volatility for the Future: {vol_future}")
-                reservation_price = mid_price_future - self.position * 0.01 * (vol_future ** 2) * (END_TIME - TICK_INTERVAL * sequence_number)
+                reservation_price = mid_price_future - self.position * 0.005 * (vol_future ** 2) * (END_TIME - TICK_INTERVAL * sequence_number)
                 self.logger.info(f"reservation price for the Future: {reservation_price}")
-                optimal_spread = 0.01 * (vol_future ** 2) * (END_TIME - TICK_INTERVAL * sequence_number) + 2 * np.log(1 + 0.01 / 0.3) / 0.01
+                optimal_spread = 0.005 * (vol_future ** 2) * (END_TIME - TICK_INTERVAL * sequence_number) + 2 * np.log(1 + 0.005 / 0.3) / 0.005
         
         """
         if instrument == Instrument.ETF:
