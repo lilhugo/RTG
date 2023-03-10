@@ -4,6 +4,9 @@ __pycache__
 *.dat
 
 autotrader.log
+autotrader_Hugo.log
+autotrader_Hugo2.log
+autotrader3.log
 exchange.log
 info.dat
 match_events.csv
