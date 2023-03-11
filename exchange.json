@@ -36,9 +36,9 @@
     "PositionLimit": 100
   },
   "Traders": {
-    "TraderHugo": "secret",
-    "TraderHugo2": "secret",
-    "TraderHugo3": "secret",
+    "autotrader_Allevaneda_1": "secret",
+    "autotrader_Allevaneda_2": "secret",
+    "autotrader_Allevaneda_3": "secret",
     "TraderOne": "secret",
     "TraderTwo": "secret",
     "TraderThree": "secret"
