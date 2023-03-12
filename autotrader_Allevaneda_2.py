@@ -32,9 +32,11 @@ MAX_ASK_NEAREST_TICK = MAXIMUM_ASK // TICK_SIZE_IN_CENTS * TICK_SIZE_IN_CENTS
 MID_PRICE_FUTURE = []
 RETURNS_FUTURE = []
 MID_PRICE_ETF = []
+VOL = []
 END_TIME = 900
 TICK_INTERVAL = 0.25
-
+BID_PRICES = []
+ASK_PRICES = []
 
 class AutoTrader(BaseAutoTrader):
     """Example Auto-trader.
@@ -97,10 +99,11 @@ class AutoTrader(BaseAutoTrader):
             
             if len(RETURNS_FUTURE) > 20:
                 vol_future = np.std(np.array(RETURNS_FUTURE)) * np.sqrt(END_TIME * 4)
+                VOL.append(vol_future)
                 self.logger.info(f"volatility for the Future: {vol_future}")
-                reservation_price = mid_price_future - self.position * 0.005 * (vol_future ** 2) * (END_TIME - TICK_INTERVAL * sequence_number)
+                reservation_price = mid_price_future - self.position * 0.01 * (vol_future ** 2) * (END_TIME - (TICK_INTERVAL * sequence_number))
                 self.logger.info(f"reservation price for the Future: {reservation_price}")
-                optimal_spread = 0.005 * (vol_future ** 2) * (END_TIME - TICK_INTERVAL * sequence_number) + 2 * np.log(1 + 0.005 / 0.3) / 0.005
+                optimal_spread = 0.01 * (vol_future ** 2) * (END_TIME - TICK_INTERVAL * sequence_number) + 2 * np.log(1 + 0.01 / 0.5) / 0.01
         
         """
         if instrument == Instrument.ETF:
@@ -118,10 +121,12 @@ class AutoTrader(BaseAutoTrader):
         if instrument == Instrument.FUTURE and len(RETURNS_FUTURE) > 20:
             price_adjustment = - (self.position // LOT_SIZE) * TICK_SIZE_IN_CENTS 
             new_bid_price = int((reservation_price - optimal_spread * TICK_SIZE_IN_CENTS  / 2) // TICK_SIZE_IN_CENTS * TICK_SIZE_IN_CENTS)
-            new_ask_price = int((reservation_price + optimal_spread * TICK_SIZE_IN_CENTS / 2) // TICK_SIZE_IN_CENTS * TICK_SIZE_IN_CENTS)
+            BID_PRICES.append(new_bid_price)
+            new_ask_price = int((reservation_price + optimal_spread * TICK_SIZE_IN_CENTS / 2) // TICK_SIZE_IN_CENTS * TICK_SIZE_IN_CENTS)   
+            ASK_PRICES.append(new_ask_price)
             self.logger.info(f"new bid price: {new_bid_price}")
             self.logger.info(f"new ask price: {new_ask_price}")
-
+                
             if self.bid_id != 0 and new_bid_price not in (self.bid_price, 0):
                 self.send_cancel_order(self.bid_id)
                 self.bid_id = 0
@@ -132,14 +137,16 @@ class AutoTrader(BaseAutoTrader):
             if self.bid_id == 0 and new_bid_price != 0 and self.position < POSITION_LIMIT:
                 self.bid_id = next(self.order_ids)
                 self.bid_price = new_bid_price
-                self.send_insert_order(self.bid_id, Side.BUY, new_bid_price, np.minimum(LOT_SIZE,POSITION_LIMIT - self.position), Lifespan.FILL_AND_KILL)
+                self.send_insert_order(self.bid_id, Side.BUY, new_bid_price, np.minimum(25,POSITION_LIMIT - self.position), Lifespan.FILL_AND_KILL)
                 self.bids.add(self.bid_id)
+                self.logger.info(f"Order_ID BID: {self.order_ids}")
 
             if self.ask_id == 0 and new_ask_price != 0 and self.position > -POSITION_LIMIT:
                 self.ask_id = next(self.order_ids)
                 self.ask_price = new_ask_price
-                self.send_insert_order(self.ask_id, Side.SELL, new_ask_price, np.minimum(LOT_SIZE,self.position + POSITION_LIMIT), Lifespan.FILL_AND_KILL)
+                self.send_insert_order(self.ask_id, Side.SELL, new_ask_price, np.minimum(25,self.position + POSITION_LIMIT), Lifespan.FILL_AND_KILL)
                 self.asks.add(self.ask_id)
+                self.logger.info(f"Order_ID ASK: {self.order_ids}")
 
     def on_order_filled_message(self, client_order_id: int, price: int, volume: int) -> None:
         """Called when one of your orders is filled, partially or fully.
@@ -148,14 +155,19 @@ class AutoTrader(BaseAutoTrader):
         which may be better than the order's limit price. The volume is
         the number of lots filled at that price.
         """
-        self.logger.info("received order filled for order %d with price %d and volume %d", client_order_id,
-                         price, volume)
+        """
+        self.logger.info("received order filled for order %d with price %d and volume %d", client_order_id,price, volume)
+        bid_price = BID_PRICES[-1]
+        ask_price = ASK_PRICES[-1]
+        self.logger.info(f"bid price: {bid_price}")
+        self.logger.info(f"ask price: {bid_price}")
+        """
         if client_order_id in self.bids:
             self.position += volume
-            self.send_hedge_order(next(self.order_ids), Side.ASK, MIN_BID_NEAREST_TICK, volume)
+            self.send_hedge_order(next(self.order_ids), Side.ASK, MIN_BID_NEAREST_TICK,volume)
         elif client_order_id in self.asks:
             self.position -= volume
-            self.send_hedge_order(next(self.order_ids), Side.BID, MAX_ASK_NEAREST_TICK, volume)
+            self.send_hedge_order(next(self.order_ids), Side.BID, MAX_ASK_NEAREST_TICK,volume)
 
     def on_order_status_message(self, client_order_id: int, fill_volume: int, remaining_volume: int,
                                 fees: int) -> None:
