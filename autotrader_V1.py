@@ -200,9 +200,11 @@ class AutoTrader(BaseAutoTrader):
         if client_order_id in self.bids:
             self.position += volume
             self.send_hedge_order(next(self.order_ids), Side.ASK, MIN_BID_NEAREST_TICK, volume)
+            self.send_cancel_order(client_order_id)
         elif client_order_id in self.asks:
             self.position -= volume
             self.send_hedge_order(next(self.order_ids), Side.BID, MAX_ASK_NEAREST_TICK, volume)
+            self.send_cancel_order(client_order_id)
         
         self.logger.info(str(self.outstanding_orders))
         self.outstanding_orders.is_filled(client_order_id,volume)
