@@ -44,12 +44,12 @@ POSITION_LIMIT = 100
 
 # about volatility indicator
 BUFFER_VOLATILITY_SIZE = 200
-MIN_TO_COMPUTE_VOLATILITY = 150
+MIN_TO_COMPUTE_VOLATILITY = 15
 
 # about kappa indicator
 BUFFER_LAST_QUOTED_SIZE = 200
 MIN_TO_COMPUTE_KAPPA = 50
-TRESHOLD_SIGMA_MAX = 0.4
+TRESHOLD_SIGMA_MAX = 0.3
 TRESHOLD_SIGMA_MIN = 0.2
 
 # Parameters to improve the performance of the strategy
@@ -330,7 +330,7 @@ class VolatilityIndicator():
     def calculation(self) -> None:
         """ Calculate the volatility"""
         if len(self.buffer) > self.min_size: 
-            self.sigma = np.sqrt(np.sum(np.square(np.log(np.array(self.buffer)[:-1]) - np.log(np.array(self.buffer)[1:])))/(self.size-1))
+            self.sigma = np.sqrt(np.sum(np.square(np.log(np.array(self.buffer)[:-1]) - np.log(np.array(self.buffer)[1:])))/(len(self.buffer)-1))
     
     def current_volatility(self) -> float:
         self.calculation()
