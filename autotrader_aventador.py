@@ -44,7 +44,7 @@ POSITION_LIMIT = 100
 
 # about volatility indicator
 BUFFER_VOLATILITY_SIZE = 200
-MIN_TO_COMPUTE_VOLATILITY = 15
+MIN_TO_COMPUTE_VOLATILITY = 10
 
 # about kappa indicator
 BUFFER_LAST_QUOTED_SIZE = 200
@@ -144,6 +144,9 @@ class AutoTrader(BaseAutoTrader):
             
             # new mid price
             self.mid_price = (ask_prices[0] + bid_prices[0]) / 2
+            
+            # we compute the volatility
+            self.sigma = self.volatility_indicator.current_volatility()
             
             # we compute the time to maturity
             self.now = (self.event_loop.time()-self.start)*SPEED
@@ -299,7 +302,6 @@ class AutoTrader(BaseAutoTrader):
         if instrument == Instrument.FUTURE and sequence_number > 1:
             self.mid_price = (ask_prices[0] + bid_prices[0]) / 2
             self.volatility_indicator.add_sample(self.mid_price)
-            self.sigma = self.volatility_indicator.current_volatility()
             
             # we adjust kappa and sigma values depends on the volatility and the trend
             if self.sigma > self.treshold_sigma_max:
