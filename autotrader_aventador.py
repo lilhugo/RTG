@@ -44,7 +44,7 @@ POSITION_LIMIT = 100
 
 # about volatility indicator
 BUFFER_VOLATILITY_SIZE = 200
-MIN_TO_COMPUTE_VOLATILITY = 100
+MIN_TO_COMPUTE_VOLATILITY = 150
 
 # about kappa indicator
 BUFFER_LAST_QUOTED_SIZE = 200
@@ -142,18 +142,8 @@ class AutoTrader(BaseAutoTrader):
             
         if instrument == Instrument.FUTURE and sequence_number > 1:
             
-            # add new mid price to the volatility indicator
+            # new mid price
             self.mid_price = (ask_prices[0] + bid_prices[0]) / 2
-            self.volatility_indicator.add_sample(self.mid_price)
-            self.sigma = self.volatility_indicator.current_volatility()
-            
-            # we compute kappa if the volatility is too high
-            if self.sigma > self.treshold_sigma_max:
-                #self.kappa = self.kappa_indicator.current_kappa()
-                self.kappa = KAPPA + 0.05
-            elif self.sigma < self.treshold_sigma_min:
-                #self.kappa = self.kappa_indicator.current_kappa()
-                self.kappa = KAPPA + 0.05
             
             # we compute the time to maturity
             self.now = (self.event_loop.time()-self.start)*SPEED
@@ -206,7 +196,7 @@ class AutoTrader(BaseAutoTrader):
                 
                 if self.position == -POSITION_LIMIT:
                     volume_bid = 175
-                    self.send_insert_order(self.bid_id, Side.BUY, self.bid_price, volume_bid, Lifespan.GOOD_FOR_DAY)
+                    self.send_insert_order(self.bid_id, Side.BUY, self.bid_price + TICK_SIZE_IN_CENTS, volume_bid, Lifespan.GOOD_FOR_DAY)
                     self.logger.info(f"bid order {self.bid_id} inserted at price {self.bid_price} for {volume_bid} lots")
                 else:
                     volume_bid = min(LOT_SIZE*LOT_SIZE_MULTIPLIER, POSITION_LIMIT - self.position)
@@ -221,7 +211,7 @@ class AutoTrader(BaseAutoTrader):
                 
                 if self.position == POSITION_LIMIT:
                     volume_ask = 175
-                    self.send_insert_order(self.ask_id, Side.SELL, self.ask_price, volume_ask, Lifespan.GOOD_FOR_DAY)
+                    self.send_insert_order(self.ask_id, Side.SELL, self.ask_price - TICK_SIZE_IN_CENTS, volume_ask, Lifespan.GOOD_FOR_DAY)
                     self.logger.info(f"ask order {self.ask_id} inserted at price {self.ask_price} for {volume_ask} lots")
                 else:
                     volume_ask = min(LOT_SIZE*LOT_SIZE_MULTIPLIER, POSITION_LIMIT + self.position)
@@ -305,6 +295,24 @@ class AutoTrader(BaseAutoTrader):
         if instrument == Instrument.ETF and sequence_number > 1:
             #self.kappa_indicator.update(ask_prices, ask_volumes, bid_prices, bid_volumes)
             pass
+        
+        if instrument == Instrument.FUTURE and sequence_number > 1:
+            self.mid_price = (ask_prices[0] + bid_prices[0]) / 2
+            self.volatility_indicator.add_sample(self.mid_price)
+            self.sigma = self.volatility_indicator.current_volatility()
+            
+            # we adjust kappa and sigma values depends on the volatility and the trend
+            if self.sigma > self.treshold_sigma_max:
+                #self.kappa = self.kappa_indicator.current_kappa()
+                self.kappa = KAPPA + 0.05
+                self.sigma = SIGMA - 0.005
+            elif self.sigma < self.treshold_sigma_min:
+                #self.kappa = self.kappa_indicator.current_kappa()
+                self.kappa = KAPPA - 0.05
+                self.sigma = SIGMA + 0.005
+            elif self.sigma > self.treshold_sigma_min and self.sigma < self.treshold_sigma_max:
+                self.kappa = KAPPA
+                self.sigma = SIGMA
 
 
 #### Custom Class/functions ####
@@ -322,7 +330,7 @@ class VolatilityIndicator():
     def calculation(self) -> None:
         """ Calculate the volatility"""
         if len(self.buffer) > self.min_size: 
-            self.sigma = np.sqrt(np.sum(np.square(np.log(np.array(self.buffer)[:-1]) - np.log(np.array(self.buffer)[1:])))/(len(self.buffer)-1))
+            self.sigma = np.sqrt(np.sum(np.square(np.log(self.buffer[:-1]/self.buffer[1:])))/len(self.buffer)-1)
     
     def current_volatility(self) -> float:
         self.calculation()
