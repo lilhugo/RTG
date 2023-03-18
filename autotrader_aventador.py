@@ -330,7 +330,7 @@ class VolatilityIndicator():
     def calculation(self) -> None:
         """ Calculate the volatility"""
         if len(self.buffer) > self.min_size: 
-            self.sigma = np.sqrt(np.sum(np.square(np.log(self.buffer[:-1]/self.buffer[1:])))/len(self.buffer)-1)
+            self.sigma = np.sqrt(np.sum(np.square(np.log(np.array(self.buffer)[:-1]) - np.log(np.array(self.buffer)[1:])))/(self.size-1))
     
     def current_volatility(self) -> float:
         self.calculation()
