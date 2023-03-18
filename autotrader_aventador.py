@@ -44,13 +44,13 @@ POSITION_LIMIT = 100
 
 # about volatility indicator
 BUFFER_VOLATILITY_SIZE = 200
-MIN_TO_COMPUTE_VOLATILITY = 10
+MIN_TO_COMPUTE_VOLATILITY = 50
 
 # about kappa indicator
 BUFFER_LAST_QUOTED_SIZE = 200
 MIN_TO_COMPUTE_KAPPA = 50
-TRESHOLD_SIGMA_MAX = 0.3
-TRESHOLD_SIGMA_MIN = 0.2
+TRESHOLD_SIGMA_MAX = 0.27
+TRESHOLD_SIGMA_MIN = 0.21
 
 # Parameters to improve the performance of the strategy
 SIGMA = 0.25 # volatility
